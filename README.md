@@ -42,21 +42,80 @@ It is designed for one topology only: **step‑down (buck) converters**.
 
 ---
 
-## 🧾 Formula Used
+## 🧾 Formulas Used (Resistors, Inductor, Capacitors)
 
-The feedback divider uses the standard formula:
-
-```
-Vout = Vref × (1 + R1/R2)
-```
-
-And output ripple is estimated using: (simplified for buck operation)
+### 1) Feedback resistors (R1 / R2)
+The tool selects standard resistor values (E24 / E96) that make the divider output closest to the desired Vout.
 
 ```
-ΔVout ≈ ΔI_L / (8 × Cout × f_sw)
+Vout = Vref × (1 + R1 / R2)
 ```
 
-Where ΔI_L is the inductor ripple current.
+From this, the ideal ratio is:
+
+```
+R1 / R2 = (Vout / Vref) - 1
+```
+
+The calculator then finds the nearest standard resistor values (E24/E96 series) in the range 1 kΩ…250 kΩ and reports the resulting Vout error.
+
+Resistor power dissipation is also estimated as:
+
+```
+I_div = Vout / (R1 + R2)
+P_R1 = I_div² × R1
+P_R2 = I_div² × R2
+```
+
+### 2) Inductor (L)
+For a buck converter, the inductor ripple current is assumed as a fixed fraction of load current (≈30%).
+
+```
+ΔI_L = ripple_pct × Iout  (ripple_pct = 0.3)
+```
+
+Using a simplified buck ripple approximation, the minimum inductance is calculated as:
+
+```
+L_min = Vout × (1 − D) / (8 × f_sw² × Cout × ΔVout)
+```
+
+where:
+- D = Vout / Vin (duty cycle)
+- f_sw = switching frequency (Hz)
+- Cout = selected output capacitance (F)
+- ΔVout = target output ripple (V)
+
+The calculator rounds L up to the nearest E12 inductor standard value and reports peak/rms currents:
+
+```
+I_L,peak = Iout + ΔI_L/2
+I_L,rms  = √(Iout² + ΔI_L²/12)
+```
+
+### 3) Output capacitor (Cout)
+The output capacitance is estimated from the desired ripple and the inductor ripple current:
+
+```
+Cout ≈ ΔI_L / (8 × f_sw × ΔVout)
+```
+
+The calculator then selects a standard E12 capacitor value and recommends realistic ceramic capacitor options (X5R/X7R) with derating for DC bias and rated voltage.
+
+It also estimates maximum allowable ESR based on the ripple current:
+
+```
+ESR_max ≈ ΔVout / ΔI_L
+```
+
+### 4) Input capacitor (Cin) (guidance)
+A simple guideline used in the tool is:
+
+```
+Cin_min ≈ Iout × D × (1 − D) / (f_sw × ΔVout)
+```
+
+This is a rough sizing rule to keep input ripple in check.
 
 ---
 
