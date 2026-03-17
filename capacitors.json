@@ -1,0 +1,78 @@
+[
+  // 0402 series
+  { "c_uF": 1, "ratedV": 6.3, "dielectric": "X5R", "pkg": "0402", "esr": 0.025, "price_usd_100": 0.55, "brand": "Samsung", "pn": "CL05A105KQ5NNNC", "min_qty": 100, "unit_price_usd": 0.0018 },
+  { "c_uF": 1, "ratedV": 10, "dielectric": "X5R", "pkg": "0402", "esr": 0.025, "price_usd_100": 0.0022, "brand": "Samsung", "pn": "CL05A105KP5NNNC", "min_qty": 100, "unit_price_usd": 0.0022 },
+  { "c_uF": 1, "ratedV": 10, "dielectric": "X5R", "pkg": "0402", "esr": 0.030, "price_usd_100": 0.60, "brand": "Samsung", "pn": "CL05A105KP8NNNC", "min_qty": 100, "unit_price_usd": 0.0030 },
+  { "c_uF": 1, "ratedV": 16, "dielectric": "X5R", "pkg": "0402", "esr": 0.025, "price_usd_100": 0.0026, "brand": "Samsung", "pn": "CL05A105KO5NNNC", "min_qty": 100, "unit_price_usd": 0.0026 },
+  { "c_uF": 1, "ratedV": 25, "dielectric": "X5R", "pkg": "0402", "esr": 0.025, "price_usd_100": 0.0041, "brand": "Samsung", "pn": "CL05A105KA5NQNC", "min_qty": 100, "unit_price_usd": 0.0041 },
+  { "c_uF": 2.2, "ratedV": 6.3, "dielectric": "X5R", "pkg": "0402", "esr": 0.018, "price_usd_100": 0.90, "brand": "Samsung", "pn": "CL05A225KQ5NNNC", "min_qty": 100, "unit_price_usd": 0.0090 },
+  { "c_uF": 2.2, "ratedV": 10, "dielectric": "X5R", "pkg": "0402", "esr": 0.018, "price_usd_100": 0.65, "brand": "Samsung", "pn": "CL05A225KQJNNNC", "min_qty": 100, "unit_price_usd": 0.0037 },
+  { "c_uF": 10, "ratedV": 6.3, "dielectric": "X5R", "pkg": "0402", "esr": 0.015, "price_usd_100": 0.0056, "brand": "Samsung", "pn": "CL05A106MQ5NUNC", "min_qty": 100, "unit_price_usd": 0.0056 },
+  { "c_uF": 10, "ratedV": 10, "dielectric": "X5R", "pkg": "0402", "esr": 0.015, "price_usd_100": 0.0091, "brand": "Samsung", "pn": "CL05A106MP5NUNC", "min_qty": 20, "unit_price_usd": 0.0091 },
+
+  // 0603 series
+  { "c_uF": 1, "ratedV": 6.3, "dielectric": "X5R", "pkg": "0603", "esr": 0.018, "price_usd_100": 0.50, "brand": "Samsung", "pn": "CL10A105KQ5NNNC", "min_qty": 100, "unit_price_usd": 0.0050 },
+  { "c_uF": 1, "ratedV": 10, "dielectric": "X7R", "pkg": "0603", "esr": 0.014, "price_usd_100": 0.60, "brand": "Samsung", "pn": "CL10B105KP8NNNC", "min_qty": 50, "unit_price_usd": 0.006 },
+  { "c_uF": 1, "ratedV": 16, "dielectric": "X7R", "pkg": "0603", "esr": 0.020, "price_usd_100": 0.0054, "brand": "Samsung", "pn": "CL10B105KO8NNNC", "min_qty": 100, "unit_price_usd": 0.0054 },
+  { "c_uF": 1, "ratedV": 25, "dielectric": "X7R", "pkg": "0603", "esr": 0.020, "price_usd_100": 0.0064, "brand": "Samsung", "pn": "CL10B105KA8NNNC", "min_qty": 50, "unit_price_usd": 0.0064 },
+  { "c_uF": 1, "ratedV": 50, "dielectric": "X5R", "pkg": "0603", "esr": 0.025, "price_usd_100": 0.0072, "brand": "Samsung", "pn": "CL10A105KB8NNNC", "min_qty": 50, "unit_price_usd": 0.0072 },
+  { "c_uF": 1.2, "ratedV": 10, "dielectric": "X7R", "pkg": "0603", "esr": 0.013, "price_usd_100": 0.62, "brand": "Samsung", "pn": "CL10A125MQ5NNNC", "min_qty": 100, "unit_price_usd": 0.0056 },
+  { "c_uF": 1.5, "ratedV": 16, "dielectric": "X7R", "pkg": "0603", "esr": 0.012, "price_usd_100": 0.95, "brand": "Samsung", "pn": "CL10A155MQ5NNNC", "min_qty": 100, "unit_price_usd": 0.0095 },
+  { "c_uF": 2.2, "ratedV": 16, "dielectric": "X7R", "pkg": "0603", "esr": 0.0105, "price_usd_100": 0.75, "brand": "Samsung", "pn": "CL10A225KO8NNNC", "min_qty": 50, "unit_price_usd": 0.0062 },
+  { "c_uF": 2.2, "ratedV": 25, "dielectric": "X7R", "pkg": "0603", "esr": 0.012, "price_usd_100": 1.10, "brand": "Samsung", "pn": "CL10A225KO5NNNC", "min_qty": 100, "unit_price_usd": 0.0110 },
+  { "c_uF": 2.7, "ratedV": 16, "dielectric": "X7R", "pkg": "0603", "esr": 0.0100, "price_usd_100": 0.78, "brand": "Samsung", "pn": "CL10A275MQ5NNNC", "min_qty": 100, "unit_price_usd": 0.0078 },
+  { "c_uF": 3.3, "ratedV": 10, "dielectric": "X7R", "pkg": "0603", "esr": 0.015, "price_usd_100": 0.95, "brand": "Murata", "pn": "GRM188R61A335KE15D", "min_qty": 100, "unit_price_usd": 0.0095 },
+  { "c_uF": 3.3, "ratedV": 16, "dielectric": "X7R", "pkg": "0603", "esr": 0.013, "price_usd_100": 1.30, "brand": "Samsung", "pn": "CL10B335KQJNNNC", "min_qty": 50, "unit_price_usd": 0.0130 },
+  { "c_uF": 4.7, "ratedV": 10, "dielectric": "X5R", "pkg": "0603", "esr": 0.010, "price_usd_100": 0.0056, "brand": "Samsung", "pn": "CL10A475KP8NNNC", "min_qty": 50, "unit_price_usd": 0.0056 },
+  { "c_uF": 4.7, "ratedV": 10, "dielectric": "X7R", "pkg": "0603", "esr": 0.0135, "price_usd_100": 1.15, "brand": "Samsung", "pn": "CL10B475KP8NNNC", "min_qty": 50, "unit_price_usd": 0.0115 },
+  { "c_uF": 4.7, "ratedV": 16, "dielectric": "X5R", "pkg": "0603", "esr": 0.010, "price_usd_100": 0.0103, "brand": "Samsung", "pn": "CL10A475KO8NNNC", "min_qty": 10, "unit_price_usd": 0.0103 },
+  { "c_uF": 4.7, "ratedV": 16, "dielectric": "X7R", "pkg": "0603", "esr": 0.011, "price_usd_100": 1.60, "brand": "Samsung", "pn": "CL10B475KP8NNNC", "min_qty": 50, "unit_price_usd": 0.0160 },
+  { "c_uF": 10, "ratedV": 10, "dielectric": "X5R", "pkg": "0603", "esr": 0.008, "price_usd_100": 0.0065, "brand": "Samsung", "pn": "CL10A106KP8NNNC", "min_qty": 50, "unit_price_usd": 0.0065 },
+  { "c_uF": 10, "ratedV": 10, "dielectric": "X5R", "pkg": "0603", "esr": 0.009, "price_usd_100": 2.40, "brand": "Samsung", "pn": "CL10A106KAHNNNE", "min_qty": 20, "unit_price_usd": 0.0240 },
+  { "c_uF": 10, "ratedV": 25, "dielectric": "X5R", "pkg": "0603", "esr": 0.008, "price_usd_100": 0.0176, "brand": "Samsung", "pn": "CL10A106MA8NRNC", "min_qty": 20, "unit_price_usd": 0.0176 },
+  { "c_uF": 22, "ratedV": 10, "dielectric": "X5R", "pkg": "0603", "esr": 0.005, "price_usd_100": 0.0141, "brand": "Samsung", "pn": "CL10A226MP8NUNE", "min_qty": 10, "unit_price_usd": 0.0141 },
+
+  // 0805 series
+  { "c_uF": 1, "ratedV": 50, "dielectric": "X7R", "pkg": "0805", "esr": 0.030, "price_usd_100": 0.0128, "brand": "Samsung", "pn": "CL21B105KBFNNNE", "min_qty": 20, "unit_price_usd": 0.0128 },
+  { "c_uF": 3.3, "ratedV": 16, "dielectric": "X7R", "pkg": "0805", "esr": 0.0090, "price_usd_100": 3.20, "brand": "Samsung", "pn": "CL21B335KOQVPNE", "min_qty": 1, "unit_price_usd": 0.0832 },
+  { "c_uF": 3.9, "ratedV": 16, "dielectric": "X7R", "pkg": "0805", "esr": 0.0088, "price_usd_100": 3.00, "brand": "Samsung", "pn": "CL21A395KQHNNNC", "min_qty": 100, "unit_price_usd": 0.0300 },
+  { "c_uF": 4.7, "ratedV": 16, "dielectric": "X7R", "pkg": "0805", "esr": 0.0085, "price_usd_100": 3.50, "brand": "Samsung", "pn": "CL21B475KOFNNNE", "min_qty": 10, "unit_price_usd": 0.0236 },
+  { "c_uF": 4.7, "ratedV": 25, "dielectric": "X5R", "pkg": "0805", "esr": 0.008, "price_usd_100": 0.0144, "brand": "Samsung", "pn": "CL21A475KAQNNNE", "min_qty": 20, "unit_price_usd": 0.0144 },
+  { "c_uF": 4.7, "ratedV": 50, "dielectric": "X5R", "pkg": "0805", "esr": 0.008, "price_usd_100": 0.0205, "brand": "Samsung", "pn": "CL21A475KBQNNNE", "min_qty": 10, "unit_price_usd": 0.0205 },
+  { "c_uF": 5.6, "ratedV": 16, "dielectric": "X7R", "pkg": "0805", "esr": 0.0080, "price_usd_100": 3.30, "brand": "Samsung", "pn": "CL21A566KQHNNNC", "min_qty": 50, "unit_price_usd": 0.0280 },
+  { "c_uF": 6.8, "ratedV": 25, "dielectric": "X7R", "pkg": "0805", "esr": 0.0075, "price_usd_100": 2.80, "brand": "Samsung", "pn": "CL21A686KQHNNNC", "min_qty": 50, "unit_price_usd": 0.0350 },
+  { "c_uF": 8.2, "ratedV": 25, "dielectric": "X7R", "pkg": "0805", "esr": 0.0070, "price_usd_100": 2.40, "brand": "Murata", "pn": "GRM21BR61E825KE15L", "min_qty": 50, "unit_price_usd": 0.0300 },
+  { "c_uF": 10, "ratedV": 25, "dielectric": "X5R", "pkg": "0805", "esr": 0.008, "price_usd_100": 0.0204, "brand": "Samsung", "pn": "CL21A106KAYNNNE", "min_qty": 20, "unit_price_usd": 0.0204 },
+  { "c_uF": 10, "ratedV": 50, "dielectric": "X5R", "pkg": "0805", "esr": 0.008, "price_usd_100": 0.0661, "brand": "muRata", "pn": "GRM21BR61H106KE43L", "min_qty": 10, "unit_price_usd": 0.0661 },
+  { "c_uF": 10, "ratedV": 50, "dielectric": "X5R", "pkg": "0805", "esr": 0.010, "price_usd_100": 0.0467, "brand": "Samsung", "pn": "CL21A106KBYQNNE", "min_qty": 5, "unit_price_usd": 0.0467 },
+  { "c_uF": 22, "ratedV": 25, "dielectric": "X5R", "pkg": "0805", "esr": 0.005, "price_usd_100": 0.0302, "brand": "Samsung", "pn": "CL21A226MAYNNNE", "min_qty": 10, "unit_price_usd": 0.0302 },
+
+  // 1206 series
+  { "c_uF": 4.7, "ratedV": 50, "dielectric": "X7R", "pkg": "1206", "esr": 0.015, "price_usd_100": 0.0389, "brand": "Samsung", "pn": "CL31B475KBHNNNE", "min_qty": 10, "unit_price_usd": 0.0389 },
+  { "c_uF": 10, "ratedV": 16, "dielectric": "X5R", "pkg": "1206", "esr": 0.009, "price_usd_100": 2.40, "brand": "Samsung", "pn": "CL31A106KAHNNNE", "min_qty": 20, "unit_price_usd": 0.0349 },
+  { "c_uF": 10, "ratedV": 25, "dielectric": "X7R", "pkg": "1206", "esr": 0.0065, "price_usd_100": 5.00, "brand": "Samsung", "pn": "CL31B106KAHNNNE", "min_qty": 20, "unit_price_usd": 0.0349 },
+  { "c_uF": 10, "ratedV": 50, "dielectric": "X7R", "pkg": "1206", "esr": 0.012, "price_usd_100": 0.0591, "brand": "Samsung", "pn": "CL31B106KBHNNNE", "min_qty": 10, "unit_price_usd": 0.0591 },
+  { "c_uF": 12, "ratedV": 25, "dielectric": "X7R", "pkg": "1206", "esr": 0.0060, "price_usd_100": 4.70, "brand": "Murata", "pn": "GRM31CR61E122KA01L", "min_qty": 50, "unit_price_usd": 0.0450 },
+  { "c_uF": 15, "ratedV": 25, "dielectric": "X7R", "pkg": "1206", "esr": 0.0058, "price_usd_100": 4.30, "brand": "Samsung", "pn": "CL31A156KAHNNNE", "min_qty": 20, "unit_price_usd": 0.0600 },
+  { "c_uF": 18, "ratedV": 35, "dielectric": "X7R", "pkg": "1206", "esr": 0.0055, "price_usd_100": 4.80, "brand": "TDK", "pn": "C3216X7R1V185K160AB", "min_qty": 20, "unit_price_usd": 0.0550 },
+  { "c_uF": 22, "ratedV": 25, "dielectric": "X5R", "pkg": "1206", "esr": 0.0052, "price_usd_100": 4.90, "brand": "Samsung", "pn": "CL31A226KAHNNNE", "min_qty": 20, "unit_price_usd": 0.0475 },
+  { "c_uF": 100, "ratedV": 6.3, "dielectric": "X5R", "pkg": "1206", "esr": 0.005, "price_usd_100": 0.0610, "brand": "Samsung", "pn": "CL31A107MQHNNNE", "min_qty": 10, "unit_price_usd": 0.0610 },
+
+  // 1210 series
+  { "c_uF": 22, "ratedV": 25, "dielectric": "X7R", "pkg": "1210", "esr": 0.010, "price_usd_100": 0.1274, "brand": "Samsung", "pn": "CL32B226KAJNNNE", "min_qty": 1, "unit_price_usd": 0.1274 },
+
+  // 2220 series
+  { "c_uF": 22, "ratedV": 25, "dielectric": "X5R", "pkg": "2220", "esr": 0.0068, "price_usd_100": 3.90, "brand": "Samsung", "pn": "CL21X226KAHNNNE", "min_qty": 200, "unit_price_usd": 0.0475 },
+
+  // 3225 series
+  { "c_uF": 27, "ratedV": 35, "dielectric": "X5R", "pkg": "3225", "esr": 0.0050, "price_usd_100": 5.60, "brand": "Samsung", "pn": "CL32A276KAHNNNE", "min_qty": 50, "unit_price_usd": 0.0560 },
+  { "c_uF": 33, "ratedV": 35, "dielectric": "X5R", "pkg": "3225", "esr": 0.0048, "price_usd_100": 5.40, "brand": "Samsung", "pn": "CL32A336KAHNNNE", "min_qty": 50, "unit_price_usd": 0.0590 },
+  { "c_uF": 39, "ratedV": 50, "dielectric": "X5R", "pkg": "3225", "esr": 0.0045, "price_usd_100": 6.20, "brand": "Murata", "pn": "GRT32A3R9A506ME11", "min_qty": 50, "unit_price_usd": 0.0700 },
+  { "c_uF": 47, "ratedV": 50, "dielectric": "X5R", "pkg": "3225", "esr": 0.0040, "price_usd_100": 3.80, "brand": "Samsung", "pn": "CL32B476KAHNNNE", "min_qty": 200, "unit_price_usd": 0.1200 },
+  { "c_uF": 56, "ratedV": 25, "dielectric": "X5R", "pkg": "3225", "esr": 0.0038, "price_usd_100": 7.50, "brand": "Samsung", "pn": "CL32B566KAHNNNE", "min_qty": 200, "unit_price_usd": 0.3000 },
+  { "c_uF": 68, "ratedV": 25, "dielectric": "X5R", "pkg": "3225", "esr": 0.0035, "price_usd_100": 8.00, "brand": "Murata", "pn": "GRT32A686M25E1", "min_qty": 200, "unit_price_usd": 0.3500 },
+
+  // 3312 series
+  { "c_uF": 82, "ratedV": 25, "dielectric": "X5R", "pkg": "3312", "esr": 0.0032, "price_usd_100": 9.00, "brand": "Samsung", "pn": "CL33A826KAHNNNE", "min_qty": 200, "unit_price_usd": 0.4500 },
+  { "c_uF": 100, "ratedV": 25, "dielectric": "X5R", "pkg": "3312", "esr": 0.0030, "price_usd_100": 10.00, "brand": "Samsung", "pn": "CL33A106KAHNNNE", "min_qty": 200, "unit_price_usd": 0.6000 }
+]

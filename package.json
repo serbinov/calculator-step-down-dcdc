@@ -1,0 +1,11 @@
+{
+  "name": "calculator-step-down-dcdc",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "node test/calculator.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^22.1.0"
+  }
+}
