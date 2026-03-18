@@ -1572,8 +1572,7 @@
                     lines.push('*Inductor current ripple ratio: ΔI = 30%;');
                     lines.push('*Inductor saturation current margin: Margin = 1.3;');
                     lines.push('*Power loss budget: Loss budget = 2%.');
-                    lines.push('*Note: the capacitance shown is the effective capacitance.');
-                    lines.push('<span style="color:red;">*Ceramic MLCCs lose capacitance under DC bias (often 20–80% at operating voltage); use higher nominal C (≈1.5–2×, sometimes 2–3×) to compensate.</span>');
+                    lines.push('<span style="color:red;">*Ceramic caps typically lose capacitance at operating voltage; use higher nominal C to compensate.</span>');
                     lines.push('');
 
                     summary += `<pre style="font-size:15px;color:var(--text-main);font-family:inherit;white-space:pre-wrap;line-height:1.4;">${lines.join('\n')}</pre>`;
