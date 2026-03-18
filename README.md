@@ -152,8 +152,6 @@ No installation required! Simply:
 2. Open in any modern web browser
 3. Start calculating resistor values
 
-Or visit the live version at: https://serbinov.github.io/Feedback-resistor-calculator-for-DC-DC/
-
 ## 📱 Browser Support
 
 - ✅ Chrome (Desktop & Mobile)
@@ -178,13 +176,7 @@ Contributions are welcome! Feel free to:
 - Submit pull requests
 - Improve documentation
 
-## 👨‍💻 Author
-
-**Oleg Serbinov**
-- Website: [serbinov.github.io](https://serbinov.github.io/)
-- GitHub: [github.com/serbinov](https://github.com/serbinov)
-
-## 📄 License
+##  License
 
 This project is open source and available under the MIT License.
 
