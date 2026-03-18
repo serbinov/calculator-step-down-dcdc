@@ -183,3 +183,33 @@ This project is open source and available under the MIT License.
 ## 🏷️ Keywords
 
 `feedback resistor calculator` `DC/DC converter` `voltage divider` `power supply design` `switching regulator` `buck converter` `boost converter` `electronics calculator` `power electronics` `resistor calculator` `voltage regulator` `SMPS design` `PWM controller` `feedback network`
+
+---
+
+## 🔐 Secure API key usage (recommended)
+
+This repository is a static site (GitHub Pages), so **any secret embedded in the frontend is visible to users**. To keep API keys safe, the recommended approach is to:
+
+1. **Create a small server-side proxy** (server / serverless function) that holds the secret in an environment variable.
+2. The browser calls the proxy endpoint (e.g., `/api/secure`), and the proxy forwards requests to the real API using the secret.
+
+### Example (Netlify serverless function)
+
+This repo includes an example function in `netlify/functions/secure-proxy.js`.
+
+To use it:
+
+1. Deploy to Netlify (or a similar platform that supports serverless functions).
+2. In Netlify settings, set the environment variable:
+   - `SECURE_API_KEY` = your secret key (e.g., `CRYXDCeSTZSc3bV6ipxtJg`)
+3. Call the function from the frontend, e.g.:
+
+```js
+fetch('/.netlify/functions/secure-proxy')
+  .then(r => r.json())
+  .then(data => console.log(data));
+```
+
+### Important
+- Never commit the secret key into the repository.
+- Rotate (regenerate) the key if it was ever exposed.
