@@ -201,7 +201,7 @@ To use it:
 
 1. Deploy to Netlify (or a similar platform that supports serverless functions).
 2. In Netlify settings, set the environment variable:
-   - `SECURE_API_KEY` = your secret key (e.g., `CRYXDCeSTZSc3bV6ipxtJg`)
+   - `SECURE_API_KEY` = your secret key (set this securely in your hosting platform, do not commit it)
 3. Call the function from the frontend, e.g.:
 
 ```js
