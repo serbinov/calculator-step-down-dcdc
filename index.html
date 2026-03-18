@@ -81,9 +81,22 @@
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
+        "@type": ["WebApplication", "Service"],
         "name": "Calculator for step‑down DCDC converter",
-        "description": "Web-based calculator for estimating feedback resistor values and output ripple in buck converters.",
+        "description": "Web-based calculator for estimating feedback resistor values and output ripple in buck converters, with additional insights on custom electronics design and development.",
+        "serviceType": "Custom Electronics Design & Development",
+        "provider": {
+            "@type": "Organization",
+            "name": "Calculator for step‑down DCDC converter"
+        },
+        "featureList": [
+            "Full-cycle R&D (feasibility through mass production)",
+            "Circuit design and simulation",
+            "Advanced HDI PCB layout with signal integrity and EMC/EMI compliance",
+            "Design for Manufacturing (DFM) including Gerber/BOM and pick-and-place data",
+            "Embedded firmware development (STM32, ESP32, bare-metal, RTOS)",
+            "Mechanical engineering and ECAD/MCAD integration (SolidWorks)"
+        ],
         "inLanguage": "en",
         "operatingSystem": "Web Browser",
         "softwareVersion": "1.0",
