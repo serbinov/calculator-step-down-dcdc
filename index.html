@@ -909,6 +909,7 @@
                 <div id="topology_hint"></div>
                 <div id="calc_result_summary" class="result" style="margin-top:12px;"></div>
                 <div id="calc_result_resistors" class="result" style="margin-top:0;"></div>
+                <div id="calc_result_lc" class="result" style="margin-top:0;"></div>
             </div>
         </div> <!-- end of calculator-grid -->
 
@@ -1602,26 +1603,26 @@
                     const outCap_e12 = lcNextStd(lcData.C_nominal_uF);
 
                     const lines = [];
-                    lines.push('Calculated values');
+                    lines.push(`<span style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:0.07em;">Calculated values</span>`);
                     lines.push('');
                     lines.push(`Target Vout: ${highlight(resistorData?.voutTarget?.toFixed(3) || parseFloat(document.getElementById('vout').value).toFixed(3))} V`);
                     lines.push(`Actual Vout: ${highlight(resistorData?.voutActual?.toFixed(3) || parseFloat(document.getElementById('vout').value).toFixed(3))} V`);
                     lines.push('');
                     if (resistorData) {
-                        lines.push(`R1 (upper): ${highlight(formatResistorValue(resistorData.r1))} (${resistorData.r1Series || 'n/a'})`);
-                        lines.push(`R2 (lower): ${highlight(formatResistorValue(resistorData.r2))} (${resistorData.r2Series || 'n/a'})`);
+                        lines.push(`R1: ${highlight(formatResistorValue(resistorData.r1))} (${resistorData.r1Series || 'n/a'})`);
+                        lines.push(`R2: ${highlight(formatResistorValue(resistorData.r2))} (${resistorData.r2Series || 'n/a'})`);
                         lines.push('');
                     }
 
                     if (lcData && lcData.Cin_min_uF) {
-                        lines.push(`Input capacity (min): ${highlight(lcFmtC(inCap_e12))} (E12)`);
+                        lines.push(`Cin (min): ${highlight(lcFmtC(inCap_e12))} (E12)`);
                         lines.push('');
                     }
 
                     lines.push(`L1: ${highlight(lcFmtShortL(nextL_e12))} (E12), (I_sat ≥ ${highlight(IsatRec ? IsatRec.toFixed(2) + ' A' : 'N/A')} , DCR ≤ ${highlight(DCR_max_str)})`);
                     lines.push('');
 
-                    lines.push(`Out capacity (min): ${highlight(lcFmtC(outCap_e12))} (E12)`);
+                    lines.push(`Cout (min): ${highlight(lcFmtC(outCap_e12))} (E12)`);
                     lines.push('');
 
                     lines.push(`Max load ${highlight(lcData.Iout_mA_max)} mA, Output Ripple ΔV≈${highlight(lcData.ripple_max_mV.toFixed(1))} mV`);
@@ -1630,6 +1631,7 @@
                     lines.push('');
 
                     lines.push('* To compensate for capacitance losses of ceramic capacitors caused by DC bias, select a nominal capacitance value that is 1.5 to 3 times the calculated effective capacitance.');
+                    lines.push('* Inductor core guidance: < 100 kHz – Iron powder or Superflux cores are optimal: high saturation current, suitable for high-power circuits. 100 kHz – 1 MHz – Ferrite (MnZn) is the standard: low core losses, the best balance of efficiency and size. > 1 MHz – Choose NiZn ferrite or metal alloy cores: they perform well at high frequencies and offer soft saturation.');
 
                     summary += `<pre style="font-size:15px;color:var(--text-main);font-family:inherit;white-space:pre-wrap;line-height:1.4;">${lines.join('\n')}</pre>`;
 
@@ -1683,6 +1685,9 @@
                 const dielectricMinFraction = { 'X7R': 0.5, 'X5R': 0.5, 'C0G': 1.0, 'Y5V': 0.25 };
                 let capVoltageDerating = 0.5;
                 const resultEl        = document.getElementById('calc_result_lc');
+                if (!resultEl) {
+                    console.warn('calc_result_lc element not found');
+                }
 
                 // ── Validation ───────────────────────────────────────────────
                 if ([Vin, Vout, Iout_mA, Iout_mA_max, vripple_mV, fsw_kHz].some(v => isNaN(v) || v <= 0)) {
