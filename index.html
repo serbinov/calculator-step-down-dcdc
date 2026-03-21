@@ -793,7 +793,7 @@
                 <div class="input-row">
                     <label for="vin">Input Voltage (V<sub>in</sub>)</label>
                     <div class="input-with-unit">
-                        <input type="number" id="vin" step="0.1" value="12" min="0.1">
+                        <input type="number" id="vin" step="0.1" value="12" min="0.1" oninput="calculateAll()">
                         <span class="unit">V</span>
                     </div>
                 </div>
@@ -801,15 +801,15 @@
                 <div class="input-row">
                     <label for="vout">Output Voltage (V<sub>out</sub>)</label>
                     <div class="input-with-unit">
-                        <input type="number" id="vout" step="0.001" value="5" min="0.1" max="50">
+                        <input type="number" id="vout" step="0.001" value="3.3" min="0.1" max="50" oninput="calculateAll()">
                         <span class="unit">V</span>
                     </div>
                 </div>
 
                 <div class="input-row">
-                    <label for="iout">Load Current (I<sub>out</sub>)</label>
+                    <label for="iout">Max Load Current (I<sub>out</sub>)</label>
                     <div class="input-with-unit">
-                        <input type="number" id="iout" step="1" value="1000" min="1">
+                        <input type="number" id="iout" step="1" value="1000" min="1" oninput="calculateAll()">
                         <span class="unit">mA</span>
                     </div>
                 </div>
@@ -817,15 +817,24 @@
                 <div class="input-row">
                     <label for="fsw">Switching Frequency (f<sub>sw</sub>)</label>
                     <div class="input-with-unit">
-                        <input type="number" id="fsw" step="1" value="300" min="1">
+                        <input type="number" id="fsw" step="1" value="500" min="1" oninput="calculateAll()">
                         <span class="unit">kHz</span>
+                    </div>
+                </div>
+
+
+                <div class="input-row">
+                    <label for="ripple_pct">Inductor ripple (ΔI/Iout)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="ripple_pct" step="1" value="30" min="1" max="100" oninput="calculateAll()">
+                        <span class="unit">%</span>
                     </div>
                 </div>
 
                 <div class="input-row">
                     <label for="vripple">Max Output Ripple (ΔVout)</label>
                     <div class="input-with-unit">
-                        <input type="number" id="vripple" step="1" value="50" min="1">
+                        <input type="number" id="vripple" step="1" value="50" min="1" oninput="calculateAll()">
                         <span class="unit">mV</span>
                     </div>
                 </div>
@@ -833,7 +842,7 @@
                 <div class="input-row">
                     <label for="vref">Reference Voltage (V<sub>ref</sub>)</label>
                     <div class="input-with-unit">
-                        <input type="number" id="vref" step="0.001" value="0.6" min="0.1" max="10">
+                        <input type="number" id="vref" step="0.001" value="0.6" min="0.1" max="10" oninput="calculateAll()">
                         <span class="unit">V</span>
                     </div>
                 </div>
@@ -841,7 +850,7 @@
 
                 <div class="input-row">
                     <label for="resistor_tolerance">Resistor Series</label>
-                    <select id="resistor_tolerance">
+                    <select id="resistor_tolerance" onchange="calculateAll()">
                         <option value="1">1% (E96 series)</option>
                         <option value="5">5% (E24 series)</option>
                         <option value="both">5%, 1% (E24, E96)</option>
@@ -900,7 +909,6 @@
                 <div id="topology_hint"></div>
                 <div id="calc_result_summary" class="result" style="margin-top:12px;"></div>
                 <div id="calc_result_resistors" class="result" style="margin-top:0;"></div>
-                <div id="calc_result_lc" class="result" style="margin-top:12px;"></div>
             </div>
         </div> <!-- end of calculator-grid -->
 
@@ -1490,6 +1498,54 @@
                     return { base: +base.toFixed(2), exponent: exp };
                 }
 
+                function computeLForCurrent(Iout_mA, params) {
+                    const { Vin, Vout, fsw_kHz, vripple_mV, rippleMode, minRippleCurrent_mA, maxL_uH, ripple_pct } = params;
+                    const Iout = Iout_mA / 1000;
+                    const D = Vout / Vin;
+                    const fsw = fsw_kHz * 1e3;
+                    const ripple_k = (typeof ripple_pct === 'number' ? ripple_pct : 30) / 100; // percentage
+                    const dVout = vripple_mV / 1000;
+
+                    const dIL_pct = ripple_k * Iout;
+                    const dIL = (rippleMode === 'ccm')
+                        ? dIL_pct
+                        : Math.max(dIL_pct, minRippleCurrent_mA / 1000);
+
+                    // Minimum output capacitance needed for desired ripple.
+                    const Cout_min_F = dIL / (8 * fsw * dVout);
+                    let C_used_uF = Math.max(Cout_min_F * 1e6 * 2, 22); // keep at least ~22 µF to avoid huge inductors
+                    let C_used_F = C_used_uF * 1e-6;
+
+                    let L_min_H = Vout * (1 - D) / (8 * fsw * fsw * C_used_F * dVout);
+                    let L_min_uH = L_min_H * 1e6;
+                    let L_std_uH = lcNextStd(L_min_uH);
+
+                    // If inductor value would be very large, increase output capacitance to reduce it.
+                    let iter = 0;
+                    while (L_std_uH > maxL_uH && C_used_uF < 470 && iter < 50) {
+                        C_used_uF += 5;
+                        C_used_F = C_used_uF * 1e-6;
+                        L_min_H = Vout * (1 - D) / (8 * fsw * fsw * C_used_F * dVout);
+                        L_min_uH = L_min_H * 1e6;
+                        const candidates = getLStdCandidates(L_min_uH);
+                        L_std_uH = candidates[0] || lcNextStd(L_min_uH);
+                        iter += 1;
+                    }
+
+                    return {
+                        Iout_mA,
+                        Iout_A: Iout,
+                        L_uH: L_std_uH,
+                        C_uF: C_used_uF,
+                        dIL_mA: dIL * 1000
+                    };
+                }
+
+                function buildInductorReferenceTable(lcParams) {
+                    // Table display has been removed per request.
+                    return '';
+                }
+
                 // Guard LC-based formatting when lcData is missing
                 let Lstd = '';
                 let Cstd = '';
@@ -1507,7 +1563,6 @@
                 // User-requested compact summary format (single, styled header)
                 let summary = '';
                 summary += `<div class="success-box">`;
-                summary += `<div style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:6px;">Calculated values</div>`;
                 // resistor-only fallback will be added later if LC data is not present
                 if (lcData) {
                     // extract calculation parameters returned from calculateLC()
@@ -1528,8 +1583,9 @@
                     const IL_rms = lcData.ILrms || 0;
                     const IL_peak = lcData.ILpeak || 0;
                     const Vout_val = resistorData && resistorData.voutActual ? resistorData.voutActual : parseFloat(document.getElementById('vout').value);
-                    const Iout_val = lcData.Iout || 0;
-                    const Pout = Vout_val * Iout_val; // W
+                    const Iout_val = (lcData && typeof lcData.Iout === 'number') ? lcData.Iout : (parseFloat(document.getElementById('iout').value) / 1000);
+                    const Iout_max_val = (lcData && typeof lcData.Iout_mA_max === 'number') ? lcData.Iout_mA_max / 1000 : (Iout_val * 2);
+                    const Pout = Vout_val * Iout_max_val; // W based on max output current
 
                     const IsatRec = IL_peak ? (IL_peak * inductorMargin) : null;
                     const IratedRec = IL_rms ? (IL_rms * inductorMargin) : null;
@@ -1541,33 +1597,45 @@
                         DCR_max_str = lcFmtESR(DCR_max_val);
                     }
 
-                    // Build results exactly in requested format
+                    const nextL_e12 = lcNextStd(lcData.Lstd_uH);
+                    const inCap_e12 = lcNextStd(lcData.Cin_min_uF);
+                    const outCap_e12 = lcNextStd(lcData.C_nominal_uF);
+
                     const lines = [];
-                    lines.push(`Target Vout: ${highlight(resistorData.voutTarget.toFixed(3))} V`);
-                    lines.push(`Actual Vout: ${highlight(resistorData.voutActual.toFixed(3))} V (error ${highlight(resistorData.errorPercent.toFixed(2) + '%')})`);
+                    lines.push('Calculated values');
                     lines.push('');
-                    lines.push(`Cin: ${highlight(lcFmtShortC(lcData.Cin_min_uF))} (ESR ≤ ${highlight(lcFmtESR(lcData.ESRmax || 0))})`);
+                    lines.push(`Target Vout: ${highlight(resistorData?.voutTarget?.toFixed(3) || parseFloat(document.getElementById('vout').value).toFixed(3))} V`);
+                    lines.push(`Actual Vout: ${highlight(resistorData?.voutActual?.toFixed(3) || parseFloat(document.getElementById('vout').value).toFixed(3))} V`);
                     lines.push('');
-                    const tolText = resistorData.tolerance === '1' ? '1%' : resistorData.tolerance === '5' ? '5%' : '1%/5%';
-                    lines.push(`R1 (upper): ${highlight(formatResistorValue(resistorData.r1))} ${tolText} (${resistorData.r1Series || ''})`);
-                    lines.push(`R2 (lower): ${highlight(formatResistorValue(resistorData.r2))} ${tolText} (${resistorData.r2Series || ''})`);
-                    lines.push('');
-                    lines.push(`L1: ${highlight(lcFmtShortL(selL))}, (I_sat ≥ ${highlight(IsatRec ? IsatRec.toFixed(2) + ' A' : 'N/A')} , DCR ≤ ${highlight(DCR_max_str)})`);
-                    lines.push('');
-                    lines.push(`Cout: ${highlight(lcFmtShortC(lcData.C_nominal_uF))} (ESR ≤ ${highlight(lcFmtESR(lcData.ESRmax || 0))})`);
-                    lines.push('');
-                    lines.push(`Output Ripple (ΔVout) (L=${highlight(lcFmtShortL(selL))}, C=${highlight(lcFmtShortC(lcData.C_nominal_uF))}): ${highlight(predicted_dVout_mV.toFixed(1) + ' mV')}`);
-                    lines.push('');
-                    const displayRipple_mV = (calcParams && calcParams.targetRipple_mV != null) ? calcParams.targetRipple_mV : 50;
-                    lines.push(`*Max output ripple amplitude: ΔVout = ${displayRipple_mV.toFixed(0)} mV;`);
-                    lines.push('*Inductor current ripple ratio: ΔI = 30%;');
-                    lines.push('*Inductor saturation current margin: Margin = 1.3;');
-                    lines.push('*Power loss budget: Loss budget = 2%.');
-                    lines.push('*Note: the capacitance shown is the effective capacitance (DC-biased).');
-                    lines.push('<span style="color:red;">*Ceramic caps typically lose capacitance at operating voltage (DC bias), so choose higher nominal C (≈1.5–2×, sometimes 2–3×).</span>');
+                    if (resistorData) {
+                        lines.push(`R1 (upper): ${highlight(formatResistorValue(resistorData.r1))} (${resistorData.r1Series || 'n/a'})`);
+                        lines.push(`R2 (lower): ${highlight(formatResistorValue(resistorData.r2))} (${resistorData.r2Series || 'n/a'})`);
+                        lines.push('');
+                    }
+
+                    if (lcData && lcData.Cin_min_uF) {
+                        lines.push(`Input capacity (min): ${highlight(lcFmtC(inCap_e12))} (E12)`);
+                        lines.push('');
+                    }
+
+                    lines.push(`L1: ${highlight(lcFmtShortL(nextL_e12))} (E12), (I_sat ≥ ${highlight(IsatRec ? IsatRec.toFixed(2) + ' A' : 'N/A')} , DCR ≤ ${highlight(DCR_max_str)})`);
                     lines.push('');
 
+                    lines.push(`Out capacity (min): ${highlight(lcFmtC(outCap_e12))} (E12)`);
+                    lines.push('');
+
+                    lines.push(`Max load ${highlight(lcData.Iout_mA_max)} mA, Output Ripple ΔV≈${highlight(lcData.ripple_max_mV.toFixed(1))} mV`);
+                    lines.push('');
+                    lines.push(`Min load ${highlight(lcData.Iout_mA_min)} mA, Output Ripple ΔV≈${highlight(lcData.ripple_minLoad_mV.toFixed(1))} mV`);
+                    lines.push('');
+
+                    lines.push('* To compensate for capacitance losses of ceramic capacitors caused by DC bias, select a nominal capacitance value that is 1.5 to 3 times the calculated effective capacitance.');
+
                     summary += `<pre style="font-size:15px;color:var(--text-main);font-family:inherit;white-space:pre-wrap;line-height:1.4;">${lines.join('\n')}</pre>`;
+
+                    // Вариант 2: JSON-представление (можно раскомментировать при необходимости)
+                    // summary += `<pre style="font-size:13px;color:var(--text-muted);white-space:pre-wrap;line-height:1.4;">${JSON.stringify(structured, null, 2)}</pre>`;
+
                 }
 
                 // If LC data was not available, but resistor results exist, show a compact resistor-only block
@@ -1587,9 +1655,21 @@
                 const topology        = 'buck';
                 const Vin             = parseFloat(document.getElementById('vin').value);
                 const Vout            = parseFloat(document.getElementById('vout').value);
-                const Iout_mA         = parseFloat(document.getElementById('iout').value);
-                const Iout            = Iout_mA / 1000;
-                const ripple_pct      = 30;      // fixed ±30% inductor ripple
+                const Iout_mA     = parseFloat(document.getElementById('iout').value);
+                const Iout_mA_max = Iout_mA;
+                const Iout_mA_min = Math.max(1, Iout_mA / 100); // min load = max/100 (but no less than 1 mA)
+
+                const Iout     = Iout_mA / 1000;
+                const Iout_max = Iout_mA_max / 1000;
+                const Iout_min = Iout_mA_min / 1000;
+
+                const ripple_pct      = parseFloat(document.getElementById('ripple_pct').value) || 30; // inductor ripple fraction
+
+                // Динaмический диапазон L теперь не ограничен полем, выбор по формулам и стандартным E12.
+                const Lmin_uH = 0.1;
+                const Lmax_uH = 1e6; // фактически без ограничений
+                const minRippleCurrent_mA = 50;   // fixed minimum ripple current in DCM-like mode
+                const enforceMinRipple = Iout_mA < 100; // auto-enable DCM-safe mode for low loads
                 const vripple_mV      = parseFloat(document.getElementById('vripple').value);
                 const fsw_kHz         = parseFloat(document.getElementById('fsw').value);
 
@@ -1605,7 +1685,7 @@
                 const resultEl        = document.getElementById('calc_result_lc');
 
                 // ── Validation ───────────────────────────────────────────────
-                if ([Vin, Vout, Iout_mA, vripple_mV, fsw_kHz].some(v => isNaN(v) || v <= 0)) {
+                if ([Vin, Vout, Iout_mA, Iout_mA_max, vripple_mV, fsw_kHz].some(v => isNaN(v) || v <= 0)) {
                     resultEl.innerHTML = '<span class="error">Please fill in all fields with valid positive values.</span>';
                     return null;
                 }
@@ -1622,37 +1702,43 @@
                 const ripple_k     = ripple_pct / 100;        // unitless
                 const dVout        = vripple_mV / 1000; // V (Input in mV)
 
-                // ── Core calculations ─────────────────────────────────────────
+                // ── Core calculations (use ROHM application-note formulas when possible) ─
                 let D, IL_avg, dIL, L_min_H, Cout_min_F, Cin_min_F, I_cap_rms, ESR_max, ESR_typical_value;
 
+                // Use ROHM helper (rohmCalc) for buck converter main sizing where appropriate.
                 if (topology === 'buck') {
-                    D          = Vout / Vin;
-                    IL_avg     = Iout;
+                    // compute ROHM-based values (r = ripple fraction)
+                    const rohmParams = { Vin, Vout, Vsw: 0.30, Vd: 0.26, fsw_kHz: fsw_kHz, Iout_mA: Iout_mA_max, r: ripple_k };
+                    const rohm = rohmCalc(rohmParams);
 
-                    // Calculate minimum output capacitance based on allowed ripple (ΔVout)
-                    // using standard formula: ΔVout = ΔIL / (8·fsw·Cout)
-                    dIL        = ripple_k * IL_avg;
+                    D = Vout / Vin;
+                    IL_avg = Iout;
+
+                    // ROHM provides L from desired ripple ratio r
+                    L_min_H = rohm.L_H;
+                    dIL = rohm.deltaI_A;
+
+                    // Minimum output capacitance based on ΔV target
                     Cout_min_F = dIL / (8 * fsw * dVout);
 
-                    // Assume we will actually use 2× the minimum capacitance to keep ripple under budget
-                    const Cout_used_F = Cout_min_F * 2;
+                    // enforce practical minimum and select used C (keep at least 22 µF)
+                    const minCap_F = 22e-6;
+                    const Cout_min_F_enforced = Math.max(Cout_min_F, minCap_F);
+                    const Cout_used_F = Cout_min_F_enforced * 2;
 
-                    // Recompute minimum inductor value based on the larger capacitance so that
-                    // output ripple stays within ΔVout even if the inductor is smaller.
-                    // L = Vout·(1 − D) / (8·fsw²·Cout_used·ΔVout)
-                    L_min_H    = Vout * (1 - D) / (8 * fsw * fsw * Cout_used_F * dVout);
+                    // rough input capacitance guidance
+                    Cin_min_F = (Iout * D * (1 - D)) / (fsw * dVout);
+                    I_cap_rms = dIL / (2 * Math.sqrt(3));
+                    ESR_max = dVout / dIL;
 
-                    // Estimate minimum input capacitance (rough guidance) assuming ΔVin≈ΔVout
-                    Cin_min_F  = (Iout * D * (1 - D)) / (fsw * dVout);
-                    I_cap_rms  = dIL / (2 * Math.sqrt(3));
-                    ESR_max    = dVout / dIL;
-
-                    // Typical X5R/X7R ceramic ESR will be computed after we select a standard C value
+                    // store computed values for later selection/formatting
+                    // Convert to µH/µF is done below with common logic
                 }
                 else if (topology === 'boost') {
                     D          = 1 - Vin / Vout;
                     IL_avg     = Iout / (1 - D);                       // = Iout·Vout/Vin
-                    dIL        = ripple_k * IL_avg;
+                    const dIL_by_pct = ripple_k * IL_avg;
+                    dIL = enforceMinRipple ? Math.max(dIL_by_pct, minRippleCurrent_mA / 1000) : dIL_by_pct;
                     L_min_H    = Vin * D / (fsw * dIL);
                     Cout_min_F = Iout * D / (fsw * dVout);
                     // Cap RMS: pulsed diode current plus triangular ripple
@@ -1662,7 +1748,8 @@
                 else {  // buck-boost (inverting)
                     D          = Vout / (Vin + Vout);
                     IL_avg     = Iout / (1 - D);
-                    dIL        = ripple_k * IL_avg;
+                    const dIL_by_pct = ripple_k * IL_avg;
+                    dIL = enforceMinRipple ? Math.max(dIL_by_pct, minRippleCurrent_mA / 1000) : dIL_by_pct;
                     L_min_H    = Vin * D / (fsw * dIL);
                     Cout_min_F = Iout * D / (fsw * dVout);
                     I_cap_rms  = Math.sqrt(D * Iout * Iout / ((1 - D) * (1 - D)) + (1 - D) * dIL * dIL / 12);
@@ -1671,96 +1758,173 @@
 
                 const IL_peak  = IL_avg + dIL / 2;
                 const IL_rms   = Math.sqrt(IL_avg * IL_avg + dIL * dIL / 12);
+                const effectiveRipplePct = IL_avg > 0 ? (dIL / IL_avg) * 100 : 0;
 
                 // ── Convert to µH and µF ──────────────────────────────────────
                 const L_min_uH   = L_min_H  * 1e6;
-                const C_min_uF   = Number.isFinite(Cout_min_F) ? Cout_min_F * 1e6 : 0;
+                const C_min_uF_raw   = Number.isFinite(Cout_min_F) ? Cout_min_F * 1e6 : 0;
+                // Enforce practical output capacitance limits
+                const C_min_uF   = Math.min(Math.max(C_min_uF_raw, 10), 10000);
+
+                // Ensure minimum input capacitance (for stability / ripple control)
+                Cin_min_F = Math.max(Cin_min_F, 1e-6);
+
+                const minL_uH = 0.5;
+                const maxL_uH = 30;
+                const minC_uF = 10;
+                const maxC_uF = 10000;
+                const clampC = (c) => Math.min(Math.max(c, minC_uF), maxC_uF);
+
+                // default chosen output capacitance (clamped to preferred range)
+                let C_used_uF = clampC(C_min_uF);
 
                 // Adjust target ripple range; if calculated ripple is outside this range, we will
-                // increase capacitance and reduce inductance to bring ripple into bounds.
+                // select L and C so that L stays within 0.5–30µH, C stays within 10–10000µF, and ripple stays under target.
                 const rippleMin_mV = 0;
                 const rippleMax_mV = 50;
 
-                // Generate candidate L/C variants by scaling output capacitance
-                const variants = [];
-                for (let capScale = 2; capScale <= 6; capScale++) {
-                    const C_used_uF = C_min_uF * capScale;
-                    const C_used_F = C_used_uF * 1e-6;
-
-                    // Recompute Lmin based on the used capacitance (smaller L reduces ripple)
-                    // L = Vout·(1 − D) / (8·fsw²·Cout_used·ΔVout)
-                    const L_min_H_variant = Vout * (1 - D) / (8 * fsw * fsw * C_used_F * dVout);
-                    const L_min_uH_variant = L_min_H_variant * 1e6;
-
-                    // Choose nearest standard inductor value (preferring smaller for efficiency)
-                    const L_next_std_variant = lcNextStd(L_min_uH_variant);
-                    const L_candidates_uH_tmp = getLStdCandidates(L_min_uH_variant);
-                    let L_std_uH_variant = L_next_std_variant;
-                    if (L_candidates_uH_tmp && L_candidates_uH_tmp.length > 0) {
-                        L_std_uH_variant = L_candidates_uH_tmp[0] || L_next_std_variant;
-                    }
-
-                    // Estimate ripple using this chosen L and C
-                    const L_used_H = L_std_uH_variant * 1e-6;
-                    let dVout_calc_V_variant = 0;
+                const getRipple_mV = (L_uH, C_uF) => {
+                    const C_F = C_uF * 1e-6;
+                    const L_H = L_uH * 1e-6;
                     if (topology === 'buck') {
-                        const dIL_for_L = Vout * (1 - D) / (L_used_H * fsw);
-                        dVout_calc_V_variant = dIL_for_L / (8 * fsw * C_used_F);
-                    } else {
-                        dVout_calc_V_variant = Iout * D / (fsw * C_used_F);
+                        const dIL_for_L = Vout * (1 - D) / (L_H * fsw);
+                        const dV = dIL_for_L / (8 * fsw * C_F);
+                        return dV * 1000;
                     }
+                    // approximate for boost/buck-boost (simplified)
+                    const dV = Iout * D / (fsw * C_F);
+                    return dV * 1000;
+                };
 
-                    variants.push({
-                        capScale,
-                        C_used_uF,
-                        L_min_uH_variant,
-                        L_std_uH_variant,
-                        dVout_calc_mV: dVout_calc_V_variant * 1000
-                    });
+                const getRequiredC_uF = (L_uH) => {
+                    const L_H = L_uH * 1e-6;
+                    if (topology === 'buck') {
+                        const dIL_for_L = Vout * (1 - D) / (L_H * fsw);
+                        const C_F = dIL_for_L / (8 * fsw * dVout);
+                        return C_F * 1e6;
+                    }
+                    return minC_uF;
+                };
+
+                const targetRipple_mV = vripple_mV;
+
+                function calcRippleForLC(L_uH, C_uF, Iout_A) {
+                    const C_F = C_uF * 1e-6;
+                    const L_H = L_uH * 1e-6;
+
+                    // Peak-to-peak inductor current ripple for given L, V, and fsw
+                    // ΔI = (Vin - Vout) * Ton / L ; where Ton = D/fsw
+                    const dI = ((Vin - Vout) * (D / fsw)) / L_H;
+
+                    // Base ripple (CCM-like) from ΔI and C
+                    const baseRippleV = dI / (8 * fsw * C_F);
+
+                    // Adjust ripple for DCM-like effect at light load.
+                    // When Iout drops, the converter spends more time in DCM / pulse-skipping,
+                    // which tends to increase output ripple beyond the simple CCM formula.
+                    const rippleFactor = 1 + (dI / Math.max(Iout_A, 1e-9) - ripple_k);
+                    const rippleFactorClamped = Math.min(Math.max(rippleFactor, 0.1), 200);
+
+                    const rippleV = baseRippleV * rippleFactorClamped;
+                    return rippleV * 1000; // mV
                 }
 
-                // Pick the best variant: prefer within ripple range, then closest to mid-range
-                const best = variants
-                    .map(v => {
-                        const within = v.dVout_calc_mV >= rippleMin_mV && v.dVout_calc_mV <= rippleMax_mV;
-                        const midError = Math.abs(v.dVout_calc_mV - (rippleMin_mV + rippleMax_mV) / 2);
-                        return { ...v, within, midError };
-                    })
-                    .sort((a, b) => {
-                        if (a.within !== b.within) return a.within ? -1 : 1;
-                        if (a.midError !== b.midError) return a.midError - b.midError;
-                        return a.capScale - b.capScale;
-                    })[0];
+                function findBestCForL(L_uH, Iout_A_max, Iout_A_min) {
+                    // Determine required capacitance so that the ripple stays under the target
+                    // for both max and min loads (to account for light-load DCM behavior).
+                    const c_req_max = (() => {
+                        const rippleAtC1uF = calcRippleForLC(L_uH, 1, Iout_A_max);
+                        // C scales inversely with ripple
+                        return Math.max(10, (rippleAtC1uF / targetRipple_mV));
+                    })();
+                    const c_req_min = (() => {
+                        const rippleAtC1uF = calcRippleForLC(L_uH, 1, Iout_A_min);
+                        return Math.max(10, (rippleAtC1uF / targetRipple_mV));
+                    })();
 
-                // Use selected variant values for reporting and downstream selection
-                const selectedVariant = best || variants[0];
-                let C_used_uF = selectedVariant.C_used_uF;
-                let C_used_F = C_used_uF * 1e-6;
-                let selected_L_std_uH = selectedVariant.L_std_uH_variant; // will be adjusted if desired
-                let dVout_calc_V = selectedVariant.dVout_calc_mV / 1000;
+                    // Use the larger of the two requirements to keep ripple within target for all loads.
+                    const requiredC = Math.max(c_req_max, c_req_min);
 
-                // If output capacitance is too small, iteratively increase it (+5uF) and shrink L (÷3)
-                // until we land close to 22, 44, 60, or 100 µF, or we reach a reasonable upper bound.
-                const targets = [22, 44, 60, 100];
-                const isCloseTarget = (val) => targets.some(t => Math.abs(val - t) <= 2);
-                while (C_used_uF < 100 && !isCloseTarget(C_used_uF)) {
-                    C_used_uF += 5;
-                    C_used_F = C_used_uF * 1e-6;
-                    selected_L_std_uH = selected_L_std_uH / 3;
+                    // Clamp to practical range and round up to nearest 0.5 µF step for a little safety.
+                    const clamped = Math.min(Math.max(requiredC, 10), 10000);
+                    const rounded = Math.ceil(clamped * 2) / 2;
 
-                    const L_used_H = selected_L_std_uH * 1e-6;
-                    if (topology === 'buck') {
-                        const dIL_for_L = Vout * (1 - D) / (L_used_H * fsw);
-                        dVout_calc_V = dIL_for_L / (8 * fsw * C_used_F);
-                    } else {
-                        dVout_calc_V = Iout * D / (fsw * C_used_F);
-                    }
-
-                    // stop if ripple is inside desired range
-                    if (dVout_calc_V * 1000 >= rippleMin_mV && dVout_calc_V * 1000 <= rippleMax_mV) break;
+                    const ripple_max = calcRippleForLC(L_uH, rounded, Iout_A_max);
+                    const ripple_min = calcRippleForLC(L_uH, rounded, Iout_A_min);
+                    const err = Math.max(Math.abs(ripple_max - targetRipple_mV), Math.abs(ripple_min - targetRipple_mV));
+                    return {
+                        L: L_uH,
+                        C: rounded,
+                        ripple_max,
+                        ripple_min,
+                        requiredC: requiredC,
+                        err
+                    };
                 }
 
-                const predicted_dVout_mV = dVout_calc_V * 1000;
+                // Determine inductance based on max load current (standard practice: 30% ripple at max load).
+                // Use the classic buck formula: L = Vout*(Vin-Vout) / (ΔI * fsw * Vin)
+                // where ΔI = ripple_pct * Iout.
+                const deltaI = (ripple_pct / 100) * Iout; // A
+                const L_target_H = (Vout * (Vin - Vout)) / (deltaI * fsw * Vin);
+                const L_target_uH = L_target_H * 1e6;
+
+                // Create a set of candidate inductors within the desired L range, and fall back to the
+                // nearest boundary if the target value lies outside the range.
+                const candidatesInRange = getLStdCandidates(L_target_uH)
+                    .filter(l => l >= Lmin_uH && l <= Lmax_uH);
+
+                let outOfRange = false;
+                let candidateLs;
+                if (candidatesInRange.length > 0) {
+                    candidateLs = candidatesInRange;
+                } else {
+                    outOfRange = true;
+                    if (L_target_uH < Lmin_uH) {
+                        // Choose nearest standard value at or above Lmin_uH
+                        candidateLs = getLStdCandidates(Lmin_uH).filter(l => l >= Lmin_uH);
+                    } else {
+                        // Choose nearest standard value at or below Lmax_uH
+                        const tmp = getLStdCandidates(Lmax_uH).filter(l => l <= Lmax_uH);
+                        candidateLs = tmp.length ? [tmp[tmp.length - 1]] : getLStdCandidates(Lmax_uH);
+                    }
+                }
+
+                let bestPair = null;
+                for (const Lcand of candidateLs) {
+                    const bestC = findBestCForL(Lcand, Iout_max, Iout_min);
+                    if (!bestC) continue;
+                    // Prefer smallest capacitance; tie-breaker: smaller ripple error
+                    if (!bestPair || bestC.C < bestPair.C || (bestC.C === bestPair.C && bestC.err < bestPair.err)) {
+                        bestPair = bestC;
+                        bestPair.L = Lcand;
+                    }
+                }
+
+                if (bestPair) {
+                    selected_L_std_uH = bestPair.L;
+                    C_used_uF = Math.min(Math.max(bestPair.C, minC_uF), maxC_uF);
+                } else {
+                    selected_L_std_uH = lcNextStd(L_target_uH);
+                    const temp = findBestCForL(selected_L_std_uH, Iout_max, Iout_min) || { C: minC_uF, ripple: targetRipple_mV };
+                    C_used_uF = Math.min(Math.max(temp.C, minC_uF), maxC_uF);
+                }
+
+                const warning_L_out_of_range = outOfRange;
+
+                const predicted_dVout_mV = calcRippleForLC(selected_L_std_uH, C_used_uF, Iout_max);
+                const bestForMax = {
+                    L: selected_L_std_uH,
+                    C: C_used_uF,
+                    ripple: predicted_dVout_mV,
+                    err: Math.abs(predicted_dVout_mV - targetRipple_mV)
+                };
+
+                // Assess behavior at minimum load (CCM vs DCM boundary)
+                const dIL_for_L = Vout * (1 - D) / ((selected_L_std_uH * 1e-6) * fsw); // A peak-peak
+                const ccmBoundary_mA = (dIL_for_L / 2) * 1000;
+                const minLoadInCCM = Iout_mA_min > ccmBoundary_mA;
+                const predicted_dVout_minLoad_mV = calcRippleForLC(selected_L_std_uH, C_used_uF, Iout_min);
 
                 // Ceramic capacitors lose capacitance under DC bias (voltage), so choose a larger nominal value.
                 // Typical derating: 40-60%. We assume 50% effective capacitance at operating voltage (overridden by UI selection).
@@ -1769,25 +1933,7 @@
                 const C_nominal_uF = C_used_uF * capSafetyFactor;
 
                 // Find standard L/C values. Prefer a smaller inductor nominal when possible.
-                const L_next_std = lcNextStd(L_min_uH);
-                const C_std_uF   = lcNextStd(C_nominal_uF);
-
-                // Prefer a smaller E12 candidate for L (choose previous standard if available)
-                const L_candidates_uH_tmp = getLStdCandidates(L_min_uH);
-                if (L_candidates_uH_tmp && L_candidates_uH_tmp.length > 0) {
-                    // candidates are [prev, curr, next] when available — pick the smaller (prev) to reduce DCR losses
-                    selected_L_std_uH = L_candidates_uH_tmp[0] || L_next_std;
-                }
-
-                // Estimate actual ripple using the chosen standard L and 2×Cmin output capacitance
-                const L_used_H = (selected_L_std_uH || L_min_uH) * 1e-6;
-                if (topology === 'buck') {
-                    const dIL_for_L = Vout * (1 - D) / (L_used_H * fsw);
-                    dVout_calc_V = dIL_for_L / (8 * fsw * C_used_F);
-                } else {
-                    // boost / buck-boost ripple approximation
-                    dVout_calc_V = Iout * D / (fsw * C_used_F);
-                }
+                const C_std_uF = lcNextStd(C_nominal_uF);
 
                 // Typical ceramic ESR estimate (simple heuristic) adjusted by dielectric
                 // Estimate a baseline ESR for the chosen standard capacitor value (for warning purposes only)
@@ -1812,6 +1958,76 @@
                     return candidates;
                 }
 
+                // === ROHM application-note helper formulas ===
+                // Eq.(15)/(17)/(18) helpers from ROHM appnote (buck converter)
+                // All voltages in V, L in H, fsw in Hz, Iout in A
+                function rohm_deltaI_from_L(L_H, Vin, Vsw, Vout, Vd, fsw_H) {
+                    // ΔI = (VIN - VSW - VOUT) * (VD + VOUT) / ((VIN - VSW + VD) * L * fsw)
+                    const num = (Vin - Vsw - Vout) * (Vd + Vout);
+                    const den = (Vin - Vsw + Vd) * L_H * fsw_H;
+                    if (!isFinite(num) || !isFinite(den) || den === 0) return 0;
+                    return num / den;
+                }
+
+                function rohm_r_from_L(L_H, Vin, Vsw, Vout, Vd, fsw_H, Iout_A) {
+                    // r = ΔI / Iout
+                    const dI = rohm_deltaI_from_L(L_H, Vin, Vsw, Vout, Vd, fsw_H);
+                    return Iout_A > 0 ? dI / Iout_A : 0;
+                }
+
+                function rohm_L_from_r(Vin, Vsw, Vout, Vd, fsw_H, r, Iout_A) {
+                    // Eq.(18-1): L = (VIN - VSW - VOUT)*(VD + VOUT) / ((VIN - VSW + VD) * fsw * r * IOUT)
+                    const num = (Vin - Vsw - Vout) * (Vd + Vout);
+                    const den = (Vin - Vsw + Vd) * fsw_H * r * Iout_A;
+                    if (!isFinite(num) || !isFinite(den) || den === 0) return NaN;
+                    return num / den; // Henries
+                }
+
+                function rohm_L_from_r_simplified(Vin, Vout, fsw_H, r, Iout_A) {
+                    // Eq.(18-2) simplified when VD and VSW are small / ignored:
+                    // L = (VIN - VOUT) * VOUT / (VIN * fsw * r * IOUT)
+                    const num = (Vin - Vout) * Vout;
+                    const den = Vin * fsw_H * r * Iout_A;
+                    if (!isFinite(num) || !isFinite(den) || den === 0) return NaN;
+                    return num / den;
+                }
+
+                function rohm_ILpeak_from_r(Iout_A, r) {
+                    // Eq.(19) (approx): Ipeak = Iout + r*Iout/2
+                    return Iout_A * (1 + r / 2);
+                }
+
+                function rohm_ILrms_from_deltaI(Iout_A, deltaI_A) {
+                    // Eq.(20)/(21): ILrms = sqrt( Iout^2 + (1/12) * (ΔI)^2 )
+                    return Math.sqrt(Iout_A * Iout_A + (1 / 12) * deltaI_A * deltaI_A);
+                }
+
+                // Convenience wrapper returning ROHM-style results for given params
+                function rohmCalc(params) {
+                    // params: { Vin, Vout, Vsw, Vd, fsw_kHz, Iout_mA, r }
+                    const Vin = params.Vin;
+                    const Vout = params.Vout;
+                    const Vsw = params.Vsw || 0.0;
+                    const Vd = params.Vd || 0.26; // forward diode drop default
+                    const fsw = (params.fsw_kHz || 300) * 1e3;
+                    const Iout = (params.Iout_mA || 1000) / 1000;
+                    const r = params.r != null ? params.r : 0.3;
+
+                    const L_H = rohm_L_from_r(Vin, Vsw, Vout, Vd, fsw, r, Iout);
+                    const deltaI = rohm_deltaI_from_L(L_H, Vin, Vsw, Vout, Vd, fsw);
+                    const ILpeak = rohm_ILpeak_from_r(Iout, r);
+                    const ILrms = rohm_ILrms_from_deltaI(Iout, deltaI);
+
+                    return {
+                        Vin, Vout, Vsw, Vd, fsw, Iout, r,
+                        L_H, L_uH: L_H * 1e6,
+                        deltaI_A: deltaI,
+                        deltaI_mA: deltaI * 1000,
+                        ILpeak_A: ILpeak,
+                        ILrms_A: ILrms
+                    };
+                }
+
                 function computeRequiredCForL(L_uH) {
                     const L_H = L_uH * 1e-6;
                     let dIL;
@@ -1826,8 +2042,8 @@
                     return C_req * 1e6; // to µF
                 }
 
-                const L_candidates_uH = getLStdCandidates(selected_L_std_uH);
-                const L_candidates = L_candidates_uH.map(l => ({
+                const L_candidates_for_display = getLStdCandidates(selected_L_std_uH);
+                const L_candidates = L_candidates_for_display.map(l => ({
                     L_uH: l,
                     C_required_uF: computeRequiredCForL(l)
                 }));
@@ -2005,17 +2221,21 @@
                 const warnings = [];
                 if (D < 0.1) warnings.push(`⚠️ Very low duty cycle (D = ${(D * 100).toFixed(1)}%). Risk of discontinuous conduction mode (DCM) and high peak current.`);
                 if (D > 0.9) warnings.push(`⚠️ Very high duty cycle (D = ${(D * 100).toFixed(1)}%). Efficiency and gate-drive timing may be challenging.`);
-                if (ripple_pct > 50) warnings.push(`⚠️ Ripple factor ${ripple_pct}% is high. Verify CCM operation at minimum load current.`);
+                if (L_min_uH > 2000) warnings.push(`⚠️ Calculated minimum inductor value (${lcFmtL(L_min_uH)}) is very large. At light loads the converter may operate in DCM; consider a smaller inductor / higher switching frequency.`);
+                if (effectiveRipplePct > 50) warnings.push(`⚠️ Inductor ripple is high (${effectiveRipplePct.toFixed(0)}%). Verify CCM operation at minimum load current.`);
                 if (IL_peak > Iout * 4) warnings.push(`⚠️ Peak inductor current (${IL_peak.toFixed(2)} A) is very high — verify inductor saturation rating!`);
 
                 // Detailed LC HTML removed to avoid duplication with Summary.
                 // Keep calc_result_lc empty; all necessary LC info is shown in the Summary block.
-                document.getElementById('calc_result_lc').innerHTML = '';
+                const lcEl = document.getElementById('calc_result_lc');
+                if (lcEl) lcEl.innerHTML = '';
                 const topologyName = { buck: 'Buck (Step-Down)', boost: 'Boost (Step-Up)', buckboost: 'Buck-Boost (Inverting)' }[topology];
                 return {
                     ok: true,
                     topologyName: topologyName,
                     Iout_mA,
+                    Iout_mA_min: Iout_mA_min,
+                    Iout_mA_max: Iout_mA_max,
                     Iout,
                     D,
                     Lmin_uH: L_min_uH,
@@ -2024,6 +2244,16 @@
                     Lstd_uH: selected_L_std_uH,
                     Cstd_uF: C_std_uF,
                     C_nominal_uF: C_nominal_uF,
+                    L_target_uH: L_target_uH,
+                    Lmin_uH: Lmin_uH,
+                    Lmax_uH: Lmax_uH,
+                    warning_L_out_of_range: warning_L_out_of_range,
+                    C_best_max_uF: bestForMax.C,
+                    ripple_max_mV: bestForMax.ripple,
+                    dIL_for_L_A: dIL_for_L,
+                    ccmBoundary_mA: ccmBoundary_mA,
+                    minLoadInCCM: minLoadInCCM,
+                    ripple_minLoad_mV: predicted_dVout_minLoad_mV,
                     L_candidates: L_candidates,
                     C_candidates: C_candidates,
                     ILavg: IL_avg,
@@ -2034,16 +2264,21 @@
                     ESRtypical: ESR_typical_value,
                     calc_params: {
                         ripple_pct: ripple_pct,
+                        mode: enforceMinRipple ? 'DCM' : 'CCM',
+                        enforceMinRipple: enforceMinRipple,
                         targetRipple_mV: vripple_mV,
+                        effectiveRipplePct: effectiveRipplePct,
+                        minRippleCurrent_mA: minRippleCurrent_mA,
                         capVoltageDerating: capVoltageDerating,
                         capSafetyFactor: capSafetyFactor,
                         lossBudgetPct: lossBudgetPct,
                         inductorMargin: inductorMargin
                     },
                     selectedCap: selectedCap,
-                    dVoutCalc_mV: dVout_calc_V * 1000
+                    dVoutCalc_mV: predicted_dVout_mV
                 };
             }
+
         </script>
 
 
